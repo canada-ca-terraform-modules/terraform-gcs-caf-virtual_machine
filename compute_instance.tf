@@ -1,3 +1,12 @@
+resource "google_compute_address" "internal_with_subnet_and_address" {
+  count = var.network_interface.network_ip != null ? 1 : 0
+
+  name         = "${local.vm_name}-ip0"
+  subnetwork   = var.network_interface.subnetwork.id
+  address_type = "INTERNAL"
+  address      = var.network_interface.network_ip
+}
+
 resource "google_compute_instance" "default" {
   name                      = local.vm_name
   machine_type              = var.machine_type
@@ -15,6 +24,7 @@ resource "google_compute_instance" "default" {
 
   network_interface {
     subnetwork = var.network_interface.subnetwork.name
+    network_ip = var.network_interface.network_ip != null ? google_compute_address.internal_with_subnet_and_address[0].address : null
 
     dynamic "access_config" {
       for_each = var.network_interface.access_config != null ? ["1"] : []
@@ -22,6 +32,7 @@ resource "google_compute_instance" "default" {
         network_tier = try(var.network_interface.access_config.network_tier, null)
       }
     }
+
   }
 
   metadata = var.metadata
