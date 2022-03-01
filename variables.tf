@@ -53,3 +53,7 @@ variable "metadata_startup_script" {
 variable "service_account" {
   type = any
 }
+
+variable "disks" {
+  type = any
+}

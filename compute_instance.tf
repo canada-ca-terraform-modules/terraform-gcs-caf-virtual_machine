@@ -7,7 +7,7 @@ resource "google_compute_address" "internal_with_subnet_and_address" {
   address      = var.network_interface.network_ip
 }
 
-resource "google_compute_instance" "default" {
+resource "google_compute_instance" "vm" {
   name                      = local.vm_name
   machine_type              = var.machine_type
   zone                      = var.zone
@@ -48,6 +48,32 @@ resource "google_compute_instance" "default" {
   lifecycle {
     ignore_changes = [
       metadata_startup_script,
+      attached_disk,
     ]
   }
+}
+
+resource "google_compute_disk" "vm_disk" {
+  for_each = var.disks
+
+  name                      = each.key
+  type                      = try(each.value.type, null)
+  size                      = each.value.size
+  zone                      = var.zone
+  image                     = try(each.value.image, null)
+  labels                    = try(each.value.labels, null)
+  physical_block_size_bytes = try(each.value.physical_block_size_bytes, null)
+  provisioned_iops          = try(each.value.provisioned_iops, null)
+  # interface                 = try(each.value.interface, null)
+  # multi_writer              = try(each.value.multi_writer, null)
+}
+
+resource "google_compute_attached_disk" "vm_attached_disk" {
+  for_each = var.disks
+
+  disk        = google_compute_disk.vm_disk[each.key].id
+  instance    = google_compute_instance.vm.id
+  device_name = each.key
+  mode        = try(each.value.mode, null)
+  zone        = var.zone
 }
