@@ -49,7 +49,7 @@ resource "google_compute_instance" "vm" {
     ignore_changes = [
       metadata_startup_script,
       attached_disk,
-      metadata.windows-keys,
+      metadata,
     ]
   }
 }
