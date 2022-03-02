@@ -56,7 +56,7 @@ resource "google_compute_instance" "vm" {
 resource "google_compute_disk" "vm_disk" {
   for_each = var.disks
 
-  name                      = each.key
+  name                      = "${local.vm_name}-${each.key}"
   type                      = try(each.value.type, null)
   size                      = each.value.size
   zone                      = var.zone
